@@ -15,10 +15,16 @@ public class CourtMaster : MonoBehaviour
     [Header("Display")]
     [SerializeField] private TMP_Text goalsDisplay;
 
+    private ScreenBounds screenBounds;
     private Ball ballInstace;
     private Paddle paddleInstance;
 
     private int goals;
+
+    private void Awake()
+    {
+        screenBounds = GetComponent<ScreenBounds>();
+    }
 
     private void Start()
     {
@@ -26,6 +32,7 @@ public class CourtMaster : MonoBehaviour
         paddleInstance = Instantiate(paddlePrefab, paddleSpawn);
 
         ballInstace.OnGoal += Goal;
+        screenBounds.OnExitBounds += TeleportOutOfBoundsPaddle;
     }
 
     private async void Goal()
@@ -38,11 +45,18 @@ public class CourtMaster : MonoBehaviour
         
         await Task.Delay(2000);
         ballInstace.gameObject.SetActive(true);
-        ballInstace.DoRandomDirectionImpulse();
+        ballInstace.ApplyRandomDirection();
+    }
+
+    private void TeleportOutOfBoundsPaddle()
+    {
+        Vector3 newPosition = screenBounds.CalculateWrappedPosition(paddleInstance.transform.position);
+        paddleInstance.transform.position = newPosition;
     }
 
     void OnDestroy()
     {
         ballInstace.OnGoal -= Goal;
+        screenBounds.OnExitBounds -= TeleportOutOfBoundsPaddle;
     }
 }
