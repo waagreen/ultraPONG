@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -16,8 +17,10 @@ public class CourtMaster : MonoBehaviour
     [SerializeField] private TMP_Text goalsDisplay;
 
     private ScreenBounds screenBounds;
-    private Ball ballInstace;
+    private Ball ballInstance;
     private Paddle paddleInstance;
+    
+    public List<Goalkeeper> goalKeepers;
 
     private int goals;
 
@@ -28,35 +31,42 @@ public class CourtMaster : MonoBehaviour
 
     private void Start()
     {
-        ballInstace = Instantiate(ballPrefab, ballSpawn);
+        ballInstance = Instantiate(ballPrefab, ballSpawn);
         paddleInstance = Instantiate(paddlePrefab, paddleSpawn);
 
-        ballInstace.OnGoal += Goal;
+        ballInstance.OnGoal += Goal;
         screenBounds.OnExitBounds += TeleportOutOfBoundsPaddle;
+        foreach (var keeper in goalKeepers) keeper.InjectTarget(ballInstance.gameObject);
     }
 
     private async void Goal()
     {
-        ballInstace.ResetVelocity();
-        ballInstace.gameObject.SetActive(false);
-        ballInstace.transform.position = ballSpawn.position;
+        if (ballInstance == null) return;
+        
+        ballInstance.ResetVelocity();
+        ballInstance.gameObject.SetActive(false);
+        ballInstance.transform.position = ballSpawn.position;
         goals++;
-        goalsDisplay.SetText($"Gols: -{goals}");
+        goalsDisplay.SetText($"<color=#FFFFFF>Gols:</color> <color=#22DD70>{goals}</color>");
         
         await Task.Delay(2000);
-        ballInstace.gameObject.SetActive(true);
-        ballInstace.ApplyRandomDirection();
+        if (ballInstance == null) return;
+
+        ballInstance.gameObject.SetActive(true);
+        ballInstance.ApplyRandomDirection();
     }
 
     private void TeleportOutOfBoundsPaddle()
     {
+        if (paddleInstance == null) return;
+        
         Vector3 newPosition = screenBounds.CalculateWrappedPosition(paddleInstance.transform.position);
         paddleInstance.transform.position = newPosition;
     }
 
     void OnDestroy()
     {
-        ballInstace.OnGoal -= Goal;
+        ballInstance.OnGoal -= Goal;
         screenBounds.OnExitBounds -= TeleportOutOfBoundsPaddle;
     }
 }
