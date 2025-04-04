@@ -37,7 +37,6 @@ public class Goalkeeper : MonoBehaviour
         colisionPoint = new(transform.position.x, transform.position.y + verticalOffset, transform.position.z);
         bool cantMove = Physics2D.OverlapBox(colisionPoint, Vector2.one * boundsDetectionSize, 0f, obstacles);
         
-        
         return cantMove;
     }
 

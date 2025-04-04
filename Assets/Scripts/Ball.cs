@@ -19,7 +19,7 @@ public class Ball : MonoBehaviour
     void Start()
     {
         GetRequiredComponents();
-        ApplyRandomDirection();
+        // ApplyRandomDirection();
     }
 
     private void GetRequiredComponents()
@@ -40,6 +40,11 @@ public class Ball : MonoBehaviour
         if ((direction.x == 0) && (direction.y == 0)) ApplyRandomDirection();
     }
 
+    public void ApplyImpulse(Vector3 force)
+    {
+        rb.AddForce(force, ForceMode2D.Impulse);
+    }
+
     private void ReflectDirection(Collision2D collision)
     {
         ContactPoint2D contact = collision.GetContact(0);
@@ -48,7 +53,7 @@ public class Ball : MonoBehaviour
 
     private void FixedUpdate()
     {
-        transform.Translate(MovementSpeed * Time.fixedDeltaTime * direction.normalized);
+        // transform.Translate(MovementSpeed * Time.fixedDeltaTime * direction.normalized);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
