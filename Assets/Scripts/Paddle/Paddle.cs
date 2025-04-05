@@ -28,6 +28,8 @@ public class Paddle : MonoBehaviour
     private Vector2 movementInput = Vector2.zero;
     private Vector2 lerpedInput = Vector2.zero;
     private Ball attachedBall;
+    private Ball targetBall;
+
     private float rateOfChange;
 
     private void Start()
@@ -49,6 +51,8 @@ public class Paddle : MonoBehaviour
         actionMap.Player.Look.performed += UpdateAimInputVector;
         actionMap.Player.Look.canceled += UpdateAimInputVector;
 
+        actionMap.Player.Throw.performed += ReleaseBall;
+        actionMap.Player.Pickup.performed += AttachBall;
 
         gamepad = Gamepad.current;
         isUsingController = gamepad != null;
@@ -115,6 +119,27 @@ public class Paddle : MonoBehaviour
         transform.rotation = interpolatedRotation;
     }
 
+    private void ReleaseBall(InputAction.CallbackContext ctx)
+    {
+        if (attachedBall == null) return;
+
+        Debug.Log("Releasing to " + aimInput);
+        attachedBall.transform.SetParent(null);
+        attachedBall.DefineDirection(aimInput);
+        attachedBall = null;
+    }
+
+    private void AttachBall(InputAction.CallbackContext ctx)
+    {
+        if (attachedBall != null || targetBall == null) return;
+
+        attachedBall = targetBall;
+        attachedBall.transform.DOMove(holdSlot.transform.position, 0.2f).SetEase(Ease.InOutCubic);
+        attachedBall.transform.SetParent(holdSlot);
+        attachedBall.ResetMovement();
+        attachedBall.CanBePickedUp = false;
+    }
+
     private void FixedUpdate()
     {
         HandleMovement();
@@ -133,9 +158,23 @@ public class Paddle : MonoBehaviour
     {
         if (((1 << collision.gameObject.layer) & pickableLayer) != 0)
         {
-            attachedBall = collision.gameObject.GetComponent<Ball>();
-            attachedBall.transform.DOMove(holdSlot.transform.position, 0.2f).SetEase(Ease.InOutCubic);
-            attachedBall.transform.SetParent(holdSlot);
+            if (targetBall == null)
+            {
+                targetBall = collision.gameObject.GetComponent<Ball>();
+                targetBall.CanBePickedUp = true;
+            }
+        }
+    }    
+    
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & pickableLayer) != 0)
+        {
+            if (targetBall != null)
+            {
+                targetBall.CanBePickedUp = false;
+                targetBall = null;
+            }
         }
     }
 

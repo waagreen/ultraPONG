@@ -43,7 +43,7 @@ public class CourtMaster : MonoBehaviour
     {
         if (ballInstance == null) return;
         
-        ballInstance.ResetVelocity();
+        ballInstance.ResetMovement();
         ballInstance.gameObject.SetActive(false);
         ballInstance.transform.position = ballSpawn.position;
         goals++;
@@ -53,7 +53,6 @@ public class CourtMaster : MonoBehaviour
         if (ballInstance == null) return;
 
         ballInstance.gameObject.SetActive(true);
-        ballInstance.ApplyRandomDirection();
     }
 
     private void TeleportOutOfBoundsPaddle()
