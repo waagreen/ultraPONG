@@ -8,12 +8,16 @@ public class Paddle : MonoBehaviour
     [Range(1f, 50f)][SerializeField] private float MovementSpeed;
     [Range(1f, 25f)][SerializeField] private float Acceleration;
     [Range(1f, 25f)][SerializeField] private float Deceleration;
+    [Range(50f, 500f)][SerializeField] private float RotationSpeed;
     [Range(0f, 0.5f)][SerializeField] private float IdleThreshold = 0.03f;
     [SerializeField] private Transform holdSlot;
     [SerializeField] private LayerMask pickableLayer;
 
     private Actions actionMap;
-    
+    private Gamepad gamepad;
+    private Camera mainCamera;
+    private bool isUsingController;
+
     // essential components - (do not change)
     private Rigidbody2D rb;
     private CircleCollider2D col;
@@ -28,6 +32,8 @@ public class Paddle : MonoBehaviour
 
     private void Start()
     {
+        mainCamera = Camera.main;
+
         CreateActionMap();
         GetRequiredComponents();
     }
@@ -41,6 +47,22 @@ public class Paddle : MonoBehaviour
         actionMap.Player.Move.canceled += UpdateMovementInputVector;
 
         actionMap.Player.Look.performed += UpdateAimInputVector;
+        actionMap.Player.Look.canceled += UpdateAimInputVector;
+
+
+        gamepad = Gamepad.current;
+        isUsingController = gamepad != null;
+
+        if(isUsingController)
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        else
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
     }
 
     private void GetRequiredComponents()
@@ -66,21 +88,37 @@ public class Paddle : MonoBehaviour
         rateOfChange = Mathf.Lerp(Deceleration, Acceleration, lerpedInput.magnitude);
         rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, lerpedInput, rateOfChange * Time.deltaTime);
     }
-
-    private void HandleAim()
+    
+    private Vector2 GetRealInputVector()
     {
-        // float TAU = 2 * Mathf.PI;
-        // float x = 3f * Mathf.Cos(TAU * aimInput.x);
-        // float y = 3f * Mathf.Sin(TAU * aimInput.y);
+        if (isUsingController) return aimInput;
 
-        Vector3 aimOffset = 10f * (Vector3)aimInput.normalized;
-        holdSlot.transform.localPosition = transform.position + aimOffset;
+        Vector2 mouseScreenPosition = aimInput;
+        Vector2 mouseWorldPosition = mainCamera.ScreenToWorldPoint(mouseScreenPosition);
+        return (mouseWorldPosition - (Vector2)transform.position).normalized;
+    }
+
+    private void HandleAimRotation()
+    {
+        Vector2 realInput = GetRealInputVector();
+        if (realInput.magnitude < 0.1f) return;
+
+        float targetAngle = Mathf.Atan2(realInput.y, realInput.x) * Mathf.Rad2Deg;
+        Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
+        Quaternion interpolatedRotation = Quaternion.Slerp
+        (
+            transform.rotation,
+            targetRotation,
+            RotationSpeed * Time.deltaTime
+        );
+
+        transform.rotation = interpolatedRotation;
     }
 
     private void FixedUpdate()
     {
         HandleMovement();
-        HandleAim();
+        HandleAimRotation();
     }
 
     void OnDrawGizmos()

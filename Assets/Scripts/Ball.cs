@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(CircleCollider2D), typeof(SpriteRenderer))]
+[RequireComponent(typeof(CircleCollider2D), typeof(SpriteRenderer))]
 public class Ball : MonoBehaviour
 {
     [SerializeField] private LayerMask bounceoffLayer;
@@ -8,7 +8,7 @@ public class Ball : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float MovementSpeed;
 
-    private Rigidbody2D rb;
+
     private CircleCollider2D col;
     private SpriteRenderer sRenderer;
 
@@ -24,14 +24,14 @@ public class Ball : MonoBehaviour
 
     private void GetRequiredComponents()
     {
-        rb = GetComponent<Rigidbody2D>();
+        // rb = GetComponent<Rigidbody2D>();
         col = GetComponent<CircleCollider2D>();
         sRenderer = GetComponent<SpriteRenderer>();
     }
     
     public void ResetVelocity()
     {
-        rb.linearVelocity = Vector2.zero;
+        // rb.linearVelocity = Vector2.zero;
     }
 
     public void ApplyRandomDirection()
@@ -42,7 +42,7 @@ public class Ball : MonoBehaviour
 
     public void ApplyImpulse(Vector3 force)
     {
-        rb.AddForce(force, ForceMode2D.Impulse);
+        // rb.AddForce(force, ForceMode2D.Impulse);
     }
 
     private void ReflectDirection(Collision2D collision)
