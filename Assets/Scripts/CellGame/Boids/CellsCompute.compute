@@ -1,0 +1,44 @@
+#pragma kernel CSMain
+static const int threadGroupSize = 1024;
+
+struct Cell
+{
+    float2 position;
+    float2 direction;
+
+    float2 flockHeading;
+    float2 flockCentre;
+    float2 separationHeading;
+    int numFlockmates;
+};
+
+RWStructuredBuffer<Cell> cells;
+int numCells;
+float viewRadius;
+float avoidRadius;
+
+[numthreads(threadGroupSize,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    for (int indexB = 0; indexB < numCells; indexB ++)
+    {
+        if (id.x != indexB)
+        {
+            Cell cellB = cells[indexB];
+            float2 offset = cellB.position - cells[id.x].position;
+            float sqrDst = offset.x * offset.x + offset.y * offset.y;
+
+            if (sqrDst < viewRadius * viewRadius)
+            {
+                cells[id.x].numFlockmates += 1;
+                cells[id.x].flockHeading += cellB.direction;
+                cells[id.x].flockCentre += cellB.position;
+
+                if (sqrDst < avoidRadius * avoidRadius)
+                {
+                    cells[id.x].separationHeading -= offset / sqrDst;
+                }
+            }
+        }
+    }
+}

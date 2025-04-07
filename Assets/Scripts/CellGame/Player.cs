@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using DG.Tweening;
 [RequireComponent(typeof(Rigidbody2D), typeof(CircleCollider2D), typeof(SpriteRenderer))]
-public class Paddle : MonoBehaviour
+public class Player : MonoBehaviour
 {
     [Range(1f, 50f)][SerializeField] private float MovementSpeed;
     [Range(1f, 25f)][SerializeField] private float Acceleration;
@@ -28,8 +28,8 @@ public class Paddle : MonoBehaviour
     private Vector2 movementInput = Vector2.zero;
     private Vector2 lerpedInput = Vector2.zero;
 
-    private Ball attachedBall;
-    private Ball targetBall;
+    private WhiteCell holdingCell;
+    private WhiteCell targetPickupCell;
 
     private float rateOfChange;
 
@@ -131,29 +131,29 @@ public class Paddle : MonoBehaviour
 
     private void ThrowBall(InputAction.CallbackContext ctx)
     {
-        if (attachedBall == null) return;
+        if (holdingCell == null) return;
 
-        attachedBall.AttachedBody = null;
-        attachedBall.transform.SetParent(null);
-        attachedBall.ApplyForce(GetForwardDirection());
+        holdingCell.AttachedPlayer = null;
+        holdingCell.transform.SetParent(null);
+        holdingCell.ApplyForce(GetForwardDirection());
 
-        attachedBall = null;
-        targetBall = null;
+        holdingCell = null;
+        targetPickupCell = null;
     }
 
     private void AttachBall(InputAction.CallbackContext ctx)
     {
-        if (attachedBall != null || targetBall == null) return;
+        if (holdingCell != null || targetPickupCell == null) return;
 
-        attachedBall = targetBall;
+        holdingCell = targetPickupCell;
         
-        attachedBall.transform.DOMove(holdSlot.transform.position, 0.15f).SetEase(Ease.InCubic);
-        attachedBall.transform.SetParent(holdSlot);
-        attachedBall.ResetVelocity();
-        attachedBall.AttachedBody = rb;
-        attachedBall.CanBePickedUp = false;
+        holdingCell.transform.DOMove(holdSlot.transform.position, 0.15f).SetEase(Ease.InCubic);
+        holdingCell.transform.SetParent(holdSlot);
+        holdingCell.ResetVelocity();
+        holdingCell.AttachedPlayer = rb;
+        holdingCell.CanBePickedUp = false;
         
-        targetBall = null;
+        targetPickupCell = null;
     }
 
     private void FixedUpdate()
@@ -166,10 +166,10 @@ public class Paddle : MonoBehaviour
     {
         if (((1 << collision.gameObject.layer) & pickableLayer) != 0)
         {
-            if (targetBall == null)
+            if (targetPickupCell == null)
             {
-                targetBall = collision.gameObject.GetComponent<Ball>();
-                targetBall.CanBePickedUp = true;
+                targetPickupCell = collision.gameObject.GetComponent<WhiteCell>();
+                targetPickupCell.CanBePickedUp = true;
             }
         }
     }    
@@ -178,10 +178,10 @@ public class Paddle : MonoBehaviour
     {
         if (((1 << collision.gameObject.layer) & pickableLayer) != 0)
         {
-            if (targetBall != null)
+            if (targetPickupCell != null)
             {
-                targetBall.CanBePickedUp = false;
-                targetBall = null;
+                targetPickupCell.CanBePickedUp = false;
+                targetPickupCell = null;
             }
         }
     }

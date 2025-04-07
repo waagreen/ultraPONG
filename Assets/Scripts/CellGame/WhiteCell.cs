@@ -2,7 +2,7 @@ using UnityEngine;
 using DG.Tweening;
 
 [RequireComponent(typeof(CircleCollider2D), typeof(Rigidbody2D))]
-public class Ball : MonoBehaviour
+public class WhiteCell : MonoBehaviour
 {
     [SerializeField] private LayerMask bounceoffLayer;
     [SerializeField] private SpriteRenderer outlineRenderer;
@@ -22,7 +22,7 @@ public class Ball : MonoBehaviour
         }
     }
     
-    public Rigidbody2D AttachedBody
+    public Rigidbody2D AttachedPlayer
     {
         get
         {
