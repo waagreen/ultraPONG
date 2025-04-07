@@ -43,7 +43,7 @@ public class CourtMaster : MonoBehaviour
     {
         if (ballInstance == null) return;
         
-        ballInstance.ResetMovement();
+        ballInstance.ResetVelocity();
         ballInstance.gameObject.SetActive(false);
         ballInstance.transform.position = ballSpawn.position;
         goals++;

@@ -27,6 +27,7 @@ public class Paddle : MonoBehaviour
     private Vector2 aimInput = Vector2.zero;
     private Vector2 movementInput = Vector2.zero;
     private Vector2 lerpedInput = Vector2.zero;
+
     private Ball attachedBall;
     private Ball targetBall;
 
@@ -51,7 +52,7 @@ public class Paddle : MonoBehaviour
         actionMap.Player.Look.performed += UpdateAimInputVector;
         actionMap.Player.Look.canceled += UpdateAimInputVector;
 
-        actionMap.Player.Throw.performed += ReleaseBall;
+        actionMap.Player.Throw.performed += ThrowBall;
         actionMap.Player.Pickup.performed += AttachBall;
 
         gamepad = Gamepad.current;
@@ -120,16 +121,24 @@ public class Paddle : MonoBehaviour
         transform.rotation = interpolatedRotation;
     }
 
-    private void ReleaseBall(InputAction.CallbackContext ctx)
+    private Vector2 GetForwardDirection()
+    {
+        // Get the current rotation angle in degrees
+        float angle = transform.eulerAngles.z;
+        // Convert angle to radians and get direction vector
+        return new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
+    }
+
+    private void ThrowBall(InputAction.CallbackContext ctx)
     {
         if (attachedBall == null) return;
 
-        float angle = transform.eulerAngles.z;
-        Vector2 direction = new (Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
-
+        attachedBall.AttachedBody = null;
         attachedBall.transform.SetParent(null);
-        attachedBall.DefineDirection(direction);
+        attachedBall.ApplyForce(GetForwardDirection());
+
         attachedBall = null;
+        targetBall = null;
     }
 
     private void AttachBall(InputAction.CallbackContext ctx)
@@ -137,24 +146,20 @@ public class Paddle : MonoBehaviour
         if (attachedBall != null || targetBall == null) return;
 
         attachedBall = targetBall;
+        
         attachedBall.transform.DOMove(holdSlot.transform.position, 0.15f).SetEase(Ease.InCubic);
         attachedBall.transform.SetParent(holdSlot);
-        attachedBall.ResetMovement();
+        attachedBall.ResetVelocity();
+        attachedBall.AttachedBody = rb;
         attachedBall.CanBePickedUp = false;
+        
+        targetBall = null;
     }
 
     private void FixedUpdate()
     {
         HandleMovement();
         HandleAimRotation();
-    }
-
-    void OnDrawGizmos()
-    {
-        if (!Application.isPlaying) return;
-        
-        Gizmos.color = Color.blue;
-        Gizmos.DrawLine(transform.position, holdSlot.transform.position);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

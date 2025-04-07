@@ -258,7 +258,7 @@ MonoBehaviour:
   MovementSpeed: 12
   Acceleration: 6
   Deceleration: 10
-  RotationSpeed: 30
+  RotationSpeed: 12
   IdleThreshold: 0.03
   holdSlot: {fileID: 4584186985251581800}
   pickableLayer:

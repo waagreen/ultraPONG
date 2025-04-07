@@ -21,12 +21,25 @@ public class Ball : MonoBehaviour
             PickUpFeedback();
         }
     }
-    private float acceleration = 0f;
+    
+    public Rigidbody2D AttachedBody
+    {
+        get
+        {
+            if (joint == null) return null;
+            return joint.connectedBody;
+        }
+        set
+        {
+            joint.enabled = value != null;
+            joint.connectedBody = value;
+        }
+    }
 
     private CircleCollider2D col;
     private Rigidbody2D rb;
-    private Vector2 direction;
     private Sequence canPickFeedback;
+    private RelativeJoint2D joint;
 
     public System.Action OnGoal;
 
@@ -38,38 +51,20 @@ public class Ball : MonoBehaviour
     private void GetRequiredComponents()
     {
         col = GetComponent<CircleCollider2D>();
+        joint = GetComponent<RelativeJoint2D>();
         rb = GetComponent<Rigidbody2D>();
+
+        joint.enabled = false;
     }
     
-    public void ResetMovement()
+    public void ResetVelocity()
     {
-        acceleration = 0f;
         rb.linearVelocity = Vector2.zero;
-        direction = Vector2.zero;
     }
 
-    public void ApplyRandomDirection()
+    public void ApplyForce(Vector3 force)
     {
-        direction = new(Random.Range(-0.75f, 0.75f), Random.Range(-0.5f, 0.5f));
-        if ((direction.x == 0) && (direction.y == 0)) ApplyRandomDirection();
-    }
-
-    public void DefineDirection(Vector3 newDirection)
-    {
-        direction = newDirection;
-    }
-
-    private void ReflectDirection(Collision2D collision)
-    {
-        ContactPoint2D contact = collision.GetContact(0);
-        direction = Vector2.Reflect(direction, contact.normal);
-    }
-
-    private void FixedUpdate()
-    {
-        float currentMoveSpeed = Mathf.Lerp(0, MovementSpeed, acceleration);
-        transform.Translate(currentMoveSpeed * Time.fixedDeltaTime * direction.normalized);
-        acceleration = Mathf.Min(1f, acceleration + 0.0025f);
+        rb.AddForce(force * MovementSpeed, ForceMode2D.Impulse);
     }
 
     private void PickUpFeedback()
@@ -82,17 +77,6 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (((1 << collision.gameObject.layer) & bounceoffLayer) != 0)
-        {
-            acceleration -= 0.05f;
-            ReflectDirection(collision);
-        }
-        else OnGoal.Invoke();
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, direction); 
+        if (((1 << collision.gameObject.layer) & bounceoffLayer) == 0) OnGoal.Invoke();
     }
 }
