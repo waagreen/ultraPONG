@@ -43,21 +43,19 @@ public class Ball : MonoBehaviour
     
     public void ResetMovement()
     {
+        acceleration = 0f;
         rb.linearVelocity = Vector2.zero;
-        rb.bodyType = RigidbodyType2D.Static;
         direction = Vector2.zero;
     }
 
     public void ApplyRandomDirection()
     {
-        rb.bodyType = RigidbodyType2D.Dynamic;
         direction = new(Random.Range(-0.75f, 0.75f), Random.Range(-0.5f, 0.5f));
         if ((direction.x == 0) && (direction.y == 0)) ApplyRandomDirection();
     }
 
     public void DefineDirection(Vector3 newDirection)
     {
-        rb.bodyType = RigidbodyType2D.Dynamic;
         direction = newDirection;
     }
 
@@ -71,7 +69,7 @@ public class Ball : MonoBehaviour
     {
         float currentMoveSpeed = Mathf.Lerp(0, MovementSpeed, acceleration);
         transform.Translate(currentMoveSpeed * Time.fixedDeltaTime * direction.normalized);
-        acceleration = Mathf.Min(1f, acceleration + 0.005f);
+        acceleration = Mathf.Min(1f, acceleration + 0.0025f);
     }
 
     private void PickUpFeedback()
@@ -86,6 +84,7 @@ public class Ball : MonoBehaviour
     {
         if (((1 << collision.gameObject.layer) & bounceoffLayer) != 0)
         {
+            acceleration -= 0.05f;
             ReflectDirection(collision);
         }
         else OnGoal.Invoke();

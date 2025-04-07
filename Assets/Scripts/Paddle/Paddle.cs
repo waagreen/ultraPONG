@@ -8,7 +8,7 @@ public class Paddle : MonoBehaviour
     [Range(1f, 50f)][SerializeField] private float MovementSpeed;
     [Range(1f, 25f)][SerializeField] private float Acceleration;
     [Range(1f, 25f)][SerializeField] private float Deceleration;
-    [Range(50f, 500f)][SerializeField] private float RotationSpeed;
+    [Range(1f, 50f)][SerializeField] private float RotationSpeed;
     [Range(0f, 0.5f)][SerializeField] private float IdleThreshold = 0.03f;
     [SerializeField] private Transform holdSlot;
     [SerializeField] private LayerMask pickableLayer;
@@ -95,7 +95,8 @@ public class Paddle : MonoBehaviour
     
     private Vector2 GetRealInputVector()
     {
-        if (isUsingController) return aimInput;
+        if (aimInput.magnitude < 0.1f) return movementInput.normalized;
+        if (isUsingController) return aimInput.normalized;
 
         Vector2 mouseScreenPosition = aimInput;
         Vector2 mouseWorldPosition = mainCamera.ScreenToWorldPoint(mouseScreenPosition);
@@ -123,9 +124,11 @@ public class Paddle : MonoBehaviour
     {
         if (attachedBall == null) return;
 
-        Debug.Log("Releasing to " + aimInput);
+        float angle = transform.eulerAngles.z;
+        Vector2 direction = new (Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+
         attachedBall.transform.SetParent(null);
-        attachedBall.DefineDirection(aimInput);
+        attachedBall.DefineDirection(direction);
         attachedBall = null;
     }
 
@@ -134,7 +137,7 @@ public class Paddle : MonoBehaviour
         if (attachedBall != null || targetBall == null) return;
 
         attachedBall = targetBall;
-        attachedBall.transform.DOMove(holdSlot.transform.position, 0.2f).SetEase(Ease.InOutCubic);
+        attachedBall.transform.DOMove(holdSlot.transform.position, 0.15f).SetEase(Ease.InCubic);
         attachedBall.transform.SetParent(holdSlot);
         attachedBall.ResetMovement();
         attachedBall.CanBePickedUp = false;
@@ -151,7 +154,7 @@ public class Paddle : MonoBehaviour
         if (!Application.isPlaying) return;
         
         Gizmos.color = Color.blue;
-        Gizmos.DrawCube(holdSlot.transform.position, Vector2.one * 0.25f);
+        Gizmos.DrawLine(transform.position, holdSlot.transform.position);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
