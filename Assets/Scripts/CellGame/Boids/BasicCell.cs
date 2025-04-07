@@ -1,3 +1,4 @@
+// BasicCell.cs
 using UnityEngine;
 
 public class BasicCell : MonoBehaviour
@@ -5,8 +6,8 @@ public class BasicCell : MonoBehaviour
     private CellSettings settings;
 
     // State
-    [HideInInspector] public Vector3 position;
-    [HideInInspector] public Vector3 forward;
+    [HideInInspector] public Vector2 position;
+    [HideInInspector] public Vector2 forward;
     private Vector2 velocity;
 
     // To Update
@@ -33,10 +34,10 @@ public class BasicCell : MonoBehaviour
         this.settings = settings;
 
         position = cachedTransform.position;
-        forward = cachedTransform.forward;
+        forward = cachedTransform.up; // Using up for 2D forward direction
 
         float startSpeed = (settings.minSpeed + settings.maxSpeed) / 2;
-        velocity = transform.forward * startSpeed;
+        velocity = forward * startSpeed;
     }
 
     public void SetColour(Color col)
@@ -49,23 +50,23 @@ public class BasicCell : MonoBehaviour
 
     public void UpdateCell()
     {
-        Vector2 acceleration = Vector2.zero;
+        acceleration = Vector2.zero;
 
         if (target != null)
         {
-            Vector3 offsetToTarget = target.position - position;
-            acceleration = SteerTowards (offsetToTarget) * settings.targetWeight;
+            Vector2 offsetToTarget = (Vector2)target.position - position;
+            acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
         }
 
         if (numPerceivedFlockmates != 0)
         {
             centreOfFlockmates /= numPerceivedFlockmates;
 
-            Vector2 offsetToFlockmatesCentre = centreOfFlockmates - (Vector2)position;
+            Vector2 offsetToFlockmatesCentre = centreOfFlockmates - position;
 
-            Vector2 alignmentForce = SteerTowards (avgFlockHeading) * settings.alignWeight;
-            Vector2 cohesionForce = SteerTowards (offsetToFlockmatesCentre) * settings.cohesionWeight;
-            Vector2 seperationForce = SteerTowards (avgAvoidanceHeading) * settings.seperateWeight;
+            Vector2 alignmentForce = SteerTowards(avgFlockHeading) * settings.alignWeight;
+            Vector2 cohesionForce = SteerTowards(offsetToFlockmatesCentre) * settings.cohesionWeight;
+            Vector2 seperationForce = SteerTowards(avgAvoidanceHeading) * settings.seperateWeight;
 
             acceleration += alignmentForce;
             acceleration += cohesionForce;
@@ -75,48 +76,48 @@ public class BasicCell : MonoBehaviour
         if (IsHeadingForCollision())
         {
             Vector2 collisionAvoidDir = ObstacleRays();
-            Vector2 collisionAvoidForce = SteerTowards (collisionAvoidDir) * settings.avoidCollisionWeight;
+            Vector2 collisionAvoidForce = SteerTowards(collisionAvoidDir) * settings.avoidCollisionWeight;
             acceleration += collisionAvoidForce;
         }
 
         velocity += acceleration * Time.deltaTime;
         float speed = velocity.magnitude;
-        Vector2 dir = velocity / speed;
-        speed = Mathf.Clamp (speed, settings.minSpeed, settings.maxSpeed);
+        Vector2 dir = velocity.normalized;
+        speed = Mathf.Clamp(speed, settings.minSpeed, settings.maxSpeed);
         velocity = dir * speed;
 
         cachedTransform.position += (Vector3)(velocity * Time.deltaTime);
-        cachedTransform.forward = dir;
+        cachedTransform.up = dir; // Rotate in 2D using up vector
         position = cachedTransform.position;
         forward = dir;
     }
 
     private bool IsHeadingForCollision()
     {
-        if (Physics.SphereCast (position, settings.boundsRadius, forward, out RaycastHit hit, settings.collisionAvoidDst, settings.obstacleMask))
-        {
-            return true;
-        } 
-
-        return false;
+        RaycastHit2D hit = Physics2D.CircleCast(position, settings.boundsRadius, forward, settings.collisionAvoidDst, settings.obstacleMask);
+        return hit.collider != null;
     }
 
-    private Vector3 ObstacleRays()
+    private Vector2 ObstacleRays()
     {
-        Vector3[] rayDirections = new Vector3[10];
-
+        Vector2[] rayDirections = new Vector2[16];
         for (int i = 0; i < rayDirections.Length; i++)
         {
-            Vector3 dir = cachedTransform.TransformDirection (rayDirections[i]);
-            Ray ray = new(position, dir);
-            
-            if (!Physics.SphereCast (ray, settings.boundsRadius, settings.collisionAvoidDst, settings.obstacleMask))
+            float angle = i * Mathf.PI * 2 / rayDirections.Length;
+            rayDirections[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        }
+
+        foreach (Vector2 dir in rayDirections)
+        {
+            RaycastHit2D hit = Physics2D.CircleCast(position, settings.boundsRadius, dir, settings.collisionAvoidDst, settings.obstacleMask);
+            if (!hit)
             {
                 return dir;
             }
         }
-
-        return forward;
+        
+        // If all rays hit, return reverse direction
+        return -forward;
     }
 
     private Vector2 SteerTowards(Vector2 vector)

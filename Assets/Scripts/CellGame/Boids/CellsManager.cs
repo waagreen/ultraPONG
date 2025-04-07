@@ -23,7 +23,7 @@ public class CellsManager : MonoBehaviour
             Vector2 pos = (Vector2)transform.position + Random.insideUnitCircle * spawnRadius;
             BasicCell cell = Instantiate(prefab);
             cell.transform.position = pos;
-            cell.transform.forward = Random.insideUnitCircle;
+            cell.transform.up = Random.insideUnitCircle.normalized;
 
             cell.Initialize(settings, null);
             cell.SetColour(colour);
