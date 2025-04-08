@@ -11,7 +11,7 @@ public class ScreenBounds : MonoBehaviour
     private Camera mainCamera;
     private BoxCollider2D trigger;
 
-    public Action OnExitBounds;
+    public Action<Collider2D> OnExitBounds;
 
     private void Awake()
     {
@@ -24,6 +24,7 @@ public class ScreenBounds : MonoBehaviour
 
     private void Start()
     {
+        OnExitBounds += RepositionPlayer;
         transform.position = Vector3.zero;
         UpdateBounds();
     }
@@ -79,9 +80,14 @@ public class ScreenBounds : MonoBehaviour
         else return worldPosition;
     }
 
+    private void RepositionPlayer(Collider2D collision)
+    {
+        collision.transform.position = CalculateWrappedPosition(collision.transform.position);
+    }
+
     private void OnTriggerExit2D(Collider2D collision)
     {
-        OnExitBounds.Invoke();
+        OnExitBounds.Invoke(collision);
     }
 
 }

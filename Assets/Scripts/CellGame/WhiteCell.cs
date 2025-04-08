@@ -74,9 +74,4 @@ public class WhiteCell : MonoBehaviour
 
         canPickFeedback.Append(outlineRenderer.DOFade(canBePickedUp ? 1f : 0f, 0.25f).SetEase(Ease.OutCubic));
     }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (((1 << collision.gameObject.layer) & bounceoffLayer) == 0) OnGoal.Invoke();
-    }
 }
