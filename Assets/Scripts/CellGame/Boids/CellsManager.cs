@@ -3,17 +3,25 @@ using UnityEngine;
 
 public class CellsManager : MonoBehaviour
 {
+    [Header("Spawn Settings")]
+    [SerializeField] private BasicCell prefab;
+    [SerializeField] private float spawnRadius = 10;
+    [SerializeField] private int spawnCount = 10;
+
+    [Header("Cell Group Behaviour")]
+    [SerializeField] private CellSettings settings;
+    [SerializeField] private ComputeShader compute;
+
     private const int threadGroupSize = 1024;
-    
-    public BasicCell prefab;
-    public float spawnRadius = 10;
-    public int spawnCount = 10;
-
-    public CellSettings settings;
-    public ComputeShader compute;
-
     private readonly List<BasicCell> cells = new();
     private bool finishedSpawning = false;
+
+    private void EliminateCell(BasicCell cell)
+    {
+        cells.Remove(cell);
+        cell.gameObject.SetActive(false);
+        cell.OnDeath -= EliminateCell;
+    }
 
     private void SpawnCells()
     {
@@ -25,9 +33,11 @@ public class CellsManager : MonoBehaviour
             cell.transform.position = pos;
             cell.transform.up = Random.insideUnitCircle.normalized;
 
-            cell.Initialize(settings, null);
-            cell.SetColour(new(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f), Random.Range(0.4f, 1f)));
+            cell.Initialize(settings);
+            cell.SetColour(new(Random.Range(0.5f, 1f), Random.Range(0.5f, 1f), Random.Range(0.5f, 1f)));
             cells.Add(cell);
+
+            cell.OnDeath += EliminateCell;
         }
 
         finishedSpawning = true;
@@ -45,25 +55,29 @@ public class CellsManager : MonoBehaviour
             int numCells = cells.Count;
             CellData[] cellData = new CellData[numCells];
 
+            // Inject cell instances position and direction into the data array
             for (int i = 0; i < cells.Count; i++)
             {
                 cellData[i].position = cells[i].position;
                 cellData[i].direction = cells[i].up;
             }
 
-            var cellBuffer = new ComputeBuffer(numCells, CellData.Size);
+            // Initialized buffer and set the data array
+            ComputeBuffer cellBuffer = new(numCells, CellData.Size);
             cellBuffer.SetData(cellData);
-
+            
+            // Inject variables into the compute shader
             compute.SetBuffer(0, "cells", cellBuffer);
             compute.SetInt("numCells", cells.Count);
             compute.SetFloat("viewRadius", settings.perceptionRadius);
             compute.SetFloat("avoidRadius", settings.avoidanceRadius);
 
-            int threadGroups = Mathf.CeilToInt (numCells / (float) threadGroupSize);
+            // Dispatch compute shader to GPU
+            int threadGroups = numCells / threadGroupSize;
             compute.Dispatch(0, threadGroups, 1, 1);
 
+            // Update cell instances based on the updated data
             cellBuffer.GetData(cellData);
-
             for (int i = 0; i < cells.Count; i++)
             {
                 cells[i].avgFlockHeading = cellData[i].flockHeading;
@@ -98,7 +112,7 @@ public class CellsManager : MonoBehaviour
         {
             get
             {
-                return sizeof (float) * 2 * 5 + sizeof (int);
+                return sizeof(float) * 2 * 5 + sizeof(int);
             }
         }
     }

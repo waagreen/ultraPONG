@@ -1,37 +1,41 @@
-// BasicCell.cs
-using UnityEditor;
 using UnityEngine;
 
 public class BasicCell : MonoBehaviour
 {
+    [SerializeField] private LayerMask harmLayer;
+
     private CellSettings settings;
 
-    // State
+    // Data that will be passed into the compute shader
     [HideInInspector] public Vector2 position;
     [HideInInspector] public Vector2 up;
-    private Vector2 velocity;
 
-    // To Update
+    // To be updated by the cells manager with updated data from compute shader
     private Vector2 acceleration;
     [HideInInspector] public Vector2 avgFlockHeading;
     [HideInInspector] public Vector2 avgAvoidanceHeading;
     [HideInInspector] public Vector2 centreOfFlockmates;
     [HideInInspector] public int numPerceivedFlockmates;
+    private Vector2 velocity;
 
-    // Cached
+    // Cached variables
     private SpriteRenderer sRenderer;
     private Transform target;
-    private readonly Vector2[] rayDirections = new Vector2[64];
+
+    private const int kCheckDirectionAmount = 64;
+    private readonly Vector2[] rayDirections = new Vector2[kCheckDirectionAmount];
+
+    public System.Action<BasicCell> OnDeath;
 
     private void Awake()
     {
         sRenderer = transform.GetComponentInChildren<SpriteRenderer>();
     }
 
-    public void Initialize(CellSettings settings, Transform target)
+    public void Initialize(CellSettings settings)
     {
-        this.target = target;
         this.settings = settings;
+        target = null;
 
         position = transform.position;
         up = transform.up; // Using up for 2D forward direction
@@ -39,9 +43,10 @@ public class BasicCell : MonoBehaviour
         float startSpeed = (settings.minSpeed + settings.maxSpeed) / 2;
         velocity = transform.up * startSpeed;
             
-        for (int i = 0; i < rayDirections.Length; i++)
+        // Pre calculate 64 different directions around a circle
+        for (int i = 0; i < kCheckDirectionAmount; i++)
         {
-            float angle = i * Mathf.PI * 2 / rayDirections.Length;
+            float angle = i * Mathf.PI * 2 / kCheckDirectionAmount;
             rayDirections[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
         }
     }
@@ -81,8 +86,7 @@ public class BasicCell : MonoBehaviour
 
         if (IsHeadingForCollision())
         {
-            Vector2 collisionAvoidDir = ObstacleRays();
-            Vector2 collisionAvoidForce = SteerTowards(collisionAvoidDir) * settings.avoidCollisionWeight;
+            Vector2 collisionAvoidForce = SteerTowards(GetUnobstructedDirection()) * settings.avoidCollisionWeight;
             acceleration += collisionAvoidForce;
         }
 
@@ -104,7 +108,7 @@ public class BasicCell : MonoBehaviour
         return Physics2D.Raycast(transform.position, transform.up, settings.collisionAvoidDst, settings.obstacleMask);
     }
 
-    private Vector2 ObstacleRays()
+    private Vector2 GetUnobstructedDirection()
     {
         Vector2 bestDirection = up; // Default to current direction
         float bestScore = float.MinValue;
@@ -144,7 +148,7 @@ public class BasicCell : MonoBehaviour
         if (forwardHit)
         {
             // Push away from the obstacle
-            Vector2 repelDirection = (position - (Vector2)forwardHit.point).normalized;
+            Vector2 repelDirection = (position - forwardHit.point).normalized;
             bestDirection = (bestDirection + repelDirection * 2f).normalized;
         }
 
@@ -155,5 +159,13 @@ public class BasicCell : MonoBehaviour
     {
         Vector2 v = vector.normalized * settings.maxSpeed - velocity;
         return Vector2.ClampMagnitude(v, settings.maxSteerForce);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & harmLayer) != 0)
+        {
+            OnDeath.Invoke(this);
+        }
     }
 }
