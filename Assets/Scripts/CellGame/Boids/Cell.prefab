@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6429915836799907452}
   - component: {fileID: 3103111325138571264}
   - component: {fileID: 8458557015337056427}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Cell
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   position: {x: 0, y: 0}
-  forward: {x: 0, y: 0}
+  up: {x: 0, y: 0}
   avgFlockHeading: {x: 0, y: 0}
   avgAvoidanceHeading: {x: 0, y: 0}
   centreOfFlockmates: {x: 0, y: 0}
@@ -98,7 +98,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5298846575582930271}
   - component: {fileID: 1749695027624653330}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Circle
   m_TagString: Untagged
   m_Icon: {fileID: 0}

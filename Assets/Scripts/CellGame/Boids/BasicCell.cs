@@ -1,4 +1,5 @@
 // BasicCell.cs
+using UnityEditor;
 using UnityEngine;
 
 public class BasicCell : MonoBehaviour
@@ -7,7 +8,7 @@ public class BasicCell : MonoBehaviour
 
     // State
     [HideInInspector] public Vector2 position;
-    [HideInInspector] public Vector2 forward;
+    [HideInInspector] public Vector2 up;
     private Vector2 velocity;
 
     // To Update
@@ -19,13 +20,12 @@ public class BasicCell : MonoBehaviour
 
     // Cached
     private SpriteRenderer sRenderer;
-    private Transform cachedTransform;
     private Transform target;
+    private readonly Vector2[] rayDirections = new Vector2[64];
 
     private void Awake()
     {
         sRenderer = transform.GetComponentInChildren<SpriteRenderer>();
-        cachedTransform = transform;
     }
 
     public void Initialize(CellSettings settings, Transform target)
@@ -33,11 +33,11 @@ public class BasicCell : MonoBehaviour
         this.target = target;
         this.settings = settings;
 
-        position = cachedTransform.position;
-        forward = cachedTransform.up; // Using up for 2D forward direction
+        position = transform.position;
+        up = transform.up; // Using up for 2D forward direction
 
         float startSpeed = (settings.minSpeed + settings.maxSpeed) / 2;
-        velocity = forward * startSpeed;
+        velocity = transform.up * startSpeed;
     }
 
     public void SetColour(Color col)
@@ -82,42 +82,37 @@ public class BasicCell : MonoBehaviour
 
         velocity += acceleration * Time.deltaTime;
         float speed = velocity.magnitude;
-        Vector2 dir = velocity.normalized;
+        Vector2 dir = velocity / speed;
         speed = Mathf.Clamp(speed, settings.minSpeed, settings.maxSpeed);
         velocity = dir * speed;
 
-        cachedTransform.position += (Vector3)(velocity * Time.deltaTime);
-        cachedTransform.up = dir; // Rotate in 2D using up vector
-        position = cachedTransform.position;
-        forward = dir;
+        transform.position += (Vector3)(velocity * Time.deltaTime);
+        transform.up = dir;
+        
+        position = transform.position;
+        up = transform.up;
     }
 
     private bool IsHeadingForCollision()
     {
-        RaycastHit2D hit = Physics2D.CircleCast(position, settings.boundsRadius, forward, settings.collisionAvoidDst, settings.obstacleMask);
-        return hit.collider != null;
+        return Physics2D.Raycast(transform.position, transform.up, settings.collisionAvoidDst, settings.obstacleMask);
     }
 
     private Vector2 ObstacleRays()
     {
-        Vector2[] rayDirections = new Vector2[16];
         for (int i = 0; i < rayDirections.Length; i++)
         {
             float angle = i * Mathf.PI * 2 / rayDirections.Length;
-            rayDirections[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            rayDirections[i] = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle));
         }
 
         foreach (Vector2 dir in rayDirections)
         {
-            RaycastHit2D hit = Physics2D.CircleCast(position, settings.boundsRadius, dir, settings.collisionAvoidDst, settings.obstacleMask);
-            if (!hit)
-            {
-                return dir;
-            }
+            if (Physics2D.Raycast(transform.position, dir, settings.collisionAvoidDst, settings.obstacleMask)) continue;
+            return dir;
         }
         
-        // If all rays hit, return reverse direction
-        return -forward;
+        return -up;
     }
 
     private Vector2 SteerTowards(Vector2 vector)

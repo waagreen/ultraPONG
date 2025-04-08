@@ -48,7 +48,7 @@ public class CellsManager : MonoBehaviour
             for (int i = 0; i < cells.Count; i++)
             {
                 cellData[i].position = cells[i].position;
-                cellData[i].direction = cells[i].forward;
+                cellData[i].direction = cells[i].up;
             }
 
             var cellBuffer = new ComputeBuffer(numCells, CellData.Size);

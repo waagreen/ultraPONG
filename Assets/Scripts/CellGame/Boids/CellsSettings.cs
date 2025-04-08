@@ -16,7 +16,6 @@ public class CellSettings : ScriptableObject
 
     [Header("Collisions")]
     public LayerMask obstacleMask;
-    public float boundsRadius = 0.27f;
     public float avoidCollisionWeight = 10f;
     public float collisionAvoidDst = 5;
 }
