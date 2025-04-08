@@ -12,18 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 641c397d51145874d931bfca275d44d7, type: 3}
   m_Name: CellsSettings
   m_EditorClassIdentifier: 
-  minSpeed: 2
-  maxSpeed: 5
+  minSpeed: 0.5
+  maxSpeed: 2
   perceptionRadius: 2.5
   avoidanceRadius: 1
-  maxSteerForce: 3
-  alignWeight: 1
-  cohesionWeight: 1
-  seperateWeight: 1
+  maxSteerForce: 30
+  alignWeight: 1.2
+  cohesionWeight: 1.3
+  seperateWeight: 1.5
   targetWeight: 1
   obstacleMask:
     serializedVersion: 2
     m_Bits: 1024
-  boundsRadius: 0.27
   avoidCollisionWeight: 10
-  collisionAvoidDst: 5
+  collisionAvoidDst: 2.5

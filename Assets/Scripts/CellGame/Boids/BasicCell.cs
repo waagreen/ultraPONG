@@ -38,6 +38,12 @@ public class BasicCell : MonoBehaviour
 
         float startSpeed = (settings.minSpeed + settings.maxSpeed) / 2;
         velocity = transform.up * startSpeed;
+            
+        for (int i = 0; i < rayDirections.Length; i++)
+        {
+            float angle = i * Mathf.PI * 2 / rayDirections.Length;
+            rayDirections[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        }
     }
 
     public void SetColour(Color col)
@@ -100,19 +106,49 @@ public class BasicCell : MonoBehaviour
 
     private Vector2 ObstacleRays()
     {
-        for (int i = 0; i < rayDirections.Length; i++)
-        {
-            float angle = i * Mathf.PI * 2 / rayDirections.Length;
-            rayDirections[i] = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle));
-        }
+        Vector2 bestDirection = up; // Default to current direction
+        float bestScore = float.MinValue;
 
         foreach (Vector2 dir in rayDirections)
         {
-            if (Physics2D.Raycast(transform.position, dir, settings.collisionAvoidDst, settings.obstacleMask)) continue;
-            return dir;
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, settings.collisionAvoidDst, settings.obstacleMask);
+            
+            // Calculate score for this direction
+            float score = 0;
+            
+            if (!hit)
+            {
+                // Prefer directions that are similar to our current movement
+                float alignmentWeight = Vector2.Dot(dir, up.normalized);
+                // Add small random factor to avoid identical cells choosing same direction
+                float randomWeight = Random.Range(0.9f, 1.1f);
+                score = alignmentWeight * randomWeight;
+            }
+            else
+            {
+                // The closer we are to the obstacle, the more we should avoid it
+                float distanceScore = 1 - (hit.distance / settings.collisionAvoidDst);
+                // Directions pointing away from obstacles get negative score
+                score = -distanceScore;
+            }
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestDirection = dir;
+            }
         }
-        
-        return -up;
+
+        // Add some repulsion force from nearby obstacles
+        RaycastHit2D forwardHit = Physics2D.Raycast(transform.position, up, settings.collisionAvoidDst, settings.obstacleMask);
+        if (forwardHit)
+        {
+            // Push away from the obstacle
+            Vector2 repelDirection = (position - (Vector2)forwardHit.point).normalized;
+            bestDirection = (bestDirection + repelDirection * 2f).normalized;
+        }
+
+        return bestDirection;
     }
 
     private Vector2 SteerTowards(Vector2 vector)

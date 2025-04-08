@@ -8,7 +8,6 @@ public class CellsManager : MonoBehaviour
     public BasicCell prefab;
     public float spawnRadius = 10;
     public int spawnCount = 10;
-    public Color colour;
 
     public CellSettings settings;
     public ComputeShader compute;
@@ -22,11 +21,12 @@ public class CellsManager : MonoBehaviour
         {
             Vector2 pos = (Vector2)transform.position + Random.insideUnitCircle * spawnRadius;
             BasicCell cell = Instantiate(prefab);
+            
             cell.transform.position = pos;
             cell.transform.up = Random.insideUnitCircle.normalized;
 
             cell.Initialize(settings, null);
-            cell.SetColour(colour);
+            cell.SetColour(new(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f), Random.Range(0.4f, 1f)));
             cells.Add(cell);
         }
 
@@ -80,7 +80,7 @@ public class CellsManager : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = new Color(colour.r, colour.g, colour.b, 0.3f);
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
     }
 
