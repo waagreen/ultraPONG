@@ -24,6 +24,8 @@ public class BasicCell : MonoBehaviour
 
     private const int kCheckDirectionAmount = 64;
     private readonly Vector2[] rayDirections = new Vector2[kCheckDirectionAmount];
+    private bool isContaminated = false;
+    public bool IsContaminated => isContaminated;
 
     public System.Action<BasicCell> OnDeath;
 
@@ -32,9 +34,10 @@ public class BasicCell : MonoBehaviour
         sRenderer = transform.GetComponentInChildren<SpriteRenderer>();
     }
 
-    public void Initialize(CellSettings settings)
+    public void Initialize(CellSettings settings, bool isContaminated)
     {
         this.settings = settings;
+        this.isContaminated = isContaminated;
         target = null;
 
         position = transform.position;
