@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     [Range(1f, 50f)][SerializeField] private float RotationSpeed;
     [Range(0f, 0.5f)][SerializeField] private float IdleThreshold = 0.03f;
     [SerializeField] private Transform holdSlot;
-    [SerializeField] private LayerMask pickableLayer;
+    [SerializeField] private WhiteCell cellPrefab;
 
     private Actions actionMap;
     private Gamepad gamepad;
@@ -29,8 +29,7 @@ public class Player : MonoBehaviour
     private Vector2 movementInput = Vector2.zero;
     private Vector2 lerpedInput = Vector2.zero;
 
-    private WhiteCell holdingCell;
-    private WhiteCell targetPickupCell;
+    private WhiteCell attachedCell;
 
     private float rateOfChange;
 
@@ -54,8 +53,7 @@ public class Player : MonoBehaviour
         actionMap.Player.Look.performed += UpdateAimInputVector;
         actionMap.Player.Look.canceled += UpdateAimInputVector;
 
-        actionMap.Player.Throw.performed += ThrowBall;
-        actionMap.Player.Pickup.performed += AttachBall;
+        actionMap.Player.Throw.performed += ThrowCell;
 
         gamepad = Gamepad.current;
         isUsingController = gamepad != null;
@@ -77,6 +75,8 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<CircleCollider2D>();
         sRenderer = GetComponent<SpriteRenderer>();
+        
+        AttachCell();
     }
 
     private void UpdateMovementInputVector(InputAction.CallbackContext ctx)
@@ -131,31 +131,19 @@ public class Player : MonoBehaviour
         return new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
     }
 
-    private void ThrowBall(InputAction.CallbackContext ctx)
+    private void ThrowCell(InputAction.CallbackContext ctx)
     {
-        if (holdingCell == null) return;
-
-        holdingCell.AttachedPlayer = null;
-        holdingCell.transform.SetParent(null);
-        holdingCell.ApplyForce(GetForwardDirection());
-
-        holdingCell = null;
-        targetPickupCell = null;
+        if (!attachedCell.CanBeThrowed()) return;
+        
+        attachedCell.transform.SetParent(null);
+        attachedCell.ApplyForce(GetForwardDirection());
+        attachedCell.JointConnection = false;
     }
 
-    private void AttachBall(InputAction.CallbackContext ctx)
-    {
-        if (holdingCell != null || targetPickupCell == null) return;
-
-        holdingCell = targetPickupCell;
-        
-        holdingCell.transform.DOMove(holdSlot.transform.position, 0.15f).SetEase(Ease.InCubic);
-        holdingCell.transform.SetParent(holdSlot);
-        holdingCell.ResetVelocity();
-        holdingCell.AttachedPlayer = rb;
-        holdingCell.CanBePickedUp = false;
-        
-        targetPickupCell = null;
+    private void AttachCell()
+    {   
+        attachedCell = Instantiate(cellPrefab, holdSlot);
+        attachedCell.SetHolderRigidBody(rb, holdSlot);
     }
 
     private void FixedUpdate()
@@ -166,30 +154,6 @@ public class Player : MonoBehaviour
         HandleAimRotation();
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (((1 << collision.gameObject.layer) & pickableLayer) != 0)
-        {
-            if (targetPickupCell == null)
-            {
-                targetPickupCell = collision.gameObject.GetComponent<WhiteCell>();
-                targetPickupCell.CanBePickedUp = true;
-            }
-        }
-    }    
-    
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (((1 << collision.gameObject.layer) & pickableLayer) != 0)
-        {
-            if (targetPickupCell != null)
-            {
-                targetPickupCell.CanBePickedUp = false;
-                targetPickupCell = null;
-            }
-        }
-    }
-
     private void OnDestroy()
     {
         actionMap.Player.Move.performed -= UpdateMovementInputVector;
@@ -198,8 +162,7 @@ public class Player : MonoBehaviour
         actionMap.Player.Look.performed -= UpdateAimInputVector;
         actionMap.Player.Look.canceled -= UpdateAimInputVector;
 
-        actionMap.Player.Throw.performed -= ThrowBall;
-        actionMap.Player.Pickup.performed -= AttachBall;
+        actionMap.Player.Throw.performed -= ThrowCell;
 
         actionMap.Disable();
     }

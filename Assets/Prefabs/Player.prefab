@@ -100,7 +100,7 @@ GameObject:
   - component: {fileID: 7787792840511803150}
   - component: {fileID: 8067526743551488577}
   - component: {fileID: 1682828856992651063}
-  - component: {fileID: 7612414422071641895}
+  - component: {fileID: 2125545241131585654}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -137,7 +137,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 1
-  m_Mass: 2.138247
+  m_Mass: 14.084154
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 0
@@ -255,16 +255,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddc78a5ac923a8d40b327247b7d35f7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MovementSpeed: 12
-  Acceleration: 6
-  Deceleration: 10
-  RotationSpeed: 12
+  MovementSpeed: 11
+  Acceleration: 5
+  Deceleration: 11
+  RotationSpeed: 8
   IdleThreshold: 0.03
   holdSlot: {fileID: 4584186985251581800}
-  pickableLayer:
-    serializedVersion: 2
-    m_Bits: 128
---- !u!58 &7612414422071641895
+  cellPrefab: {fileID: 7488482463285122654, guid: dd13894e99e21ef4c9671a3d5f33420d, type: 3}
+--- !u!58 &2125545241131585654
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -280,7 +278,7 @@ CircleCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1975
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -294,12 +292,12 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 16
+  m_Radius: 13
 --- !u!1 &4134944686586979260
 GameObject:
   m_ObjectHideFlags: 0
