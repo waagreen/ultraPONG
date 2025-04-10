@@ -25,19 +25,19 @@ public class CellsManager : MonoBehaviour
 
     public float ContaminationLevel
     {
-        get => (cells.Count - goodCells) / badCells;
+        get => 1f - (spawnCount - badCells) / (float)spawnCount;
     }
 
     public float IntegrityLevel
     {
-        get => (cells.Count - badCells) / goodCells;
+        get => 1f - (spawnCount - goodCells) / (float)spawnCount;
     }
 
 
     private void UpdateLevels()
     {
         integrityDisplay.SetText($"Integridade\n<color=#28DECA>{string.Format("{0:p}", IntegrityLevel)}</color>");
-        contaminationDisplay.SetText($"Contaminação\n<color=#E00053>{string.Format("{0:p}", ContaminationLevel)}</color>");
+        contaminationDisplay.SetText($"Contaminação\n<color=#E00053>{string.Format("{0:p}",ContaminationLevel)}</color>");
     }
 
     private void EliminateCell(BasicCell cell)
@@ -54,8 +54,8 @@ public class CellsManager : MonoBehaviour
 
     private Color GetCellColor(bool isContaminated)
     {
-        if (isContaminated) return new(1f, Random.Range(0.5f,  0.7f), Random.Range(0.5f,  0.7f));
-        else return new(Random.Range(0.5f,  0.7f), 1f, Random.Range(0.5f, 0.7f));
+        if (isContaminated) return new(1f, Random.Range(0.4f, 0.6f), Random.Range(0.3f,  0.4f));
+        else return new(Random.Range(0.3f,  0.4f), Random.Range(0.4f, 0.6f), 1f);
     }
 
     private void SpawnCells()
@@ -73,7 +73,7 @@ public class CellsManager : MonoBehaviour
             if (isContaminated) badCells++;
             else goodCells++;
 
-            Debug.Log(isContaminated ? "<color=#E00053>Bad Cell</color>" : "<color=#28DECA>Good Cell</color>");
+            // Debug.Log(isContaminated ? "<color=#E00053>Bad Cell</color>" : "<color=#28DECA>Good Cell</color>");
 
             cell.Initialize(settings, isContaminated);
             cell.SetColour(GetCellColor(isContaminated));
