@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: CellsSettings
   m_EditorClassIdentifier: 
   minSpeed: 1
-  maxSpeed: 3
-  perceptionRadius: 2.5
-  avoidanceRadius: 1.5
-  maxSteerForce: 5
+  maxSpeed: 1.3
+  perceptionRadius: 4
+  avoidanceRadius: 1.2
+  maxSteerForce: 8
   alignWeight: 2
-  cohesionWeight: 0.75
-  seperateWeight: 3
-  targetWeight: 1
+  cohesionWeight: 0.8
+  seperateWeight: 2
+  targetWeight: 2
   obstacleMask:
     serializedVersion: 2
     m_Bits: 1408
   avoidCollisionWeight: 10
-  collisionAvoidDst: 3
+  collisionAvoidDst: 2

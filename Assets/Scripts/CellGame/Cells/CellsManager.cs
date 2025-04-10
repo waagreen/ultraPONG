@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class CellsManager : MonoBehaviour
 {
+    [SerializeField][Range(0f, 1f)] private float integrityThreshold;
+    [SerializeField][Range(0f, 1f)] private float contaminationThreshold;
+
     [Header("Spawn Settings")]
     [SerializeField] private BasicCell prefab;
     [SerializeField] private float spawnRadius = 10;
     [SerializeField] private int spawnCount = 10;
+    [SerializeField] List<Vector3> spawnPoints = new();
 
     [Header("Cell Group Behaviour")]
     [SerializeField] private CellSettings settings;
@@ -22,6 +26,9 @@ public class CellsManager : MonoBehaviour
     private bool finishedSpawning = false;
     private int goodCells;
     private int badCells;
+
+    public System.Action OnFail;
+    public System.Action OnSucceed;
 
     public float ContaminationLevel
     {
@@ -48,8 +55,11 @@ public class CellsManager : MonoBehaviour
 
         if (cell.IsContaminated) badCells--;
         else goodCells--;
-        
+    
         UpdateLevels();
+        
+        if (IntegrityLevel < integrityThreshold) OnFail.Invoke();
+        if (ContaminationLevel < contaminationThreshold) OnSucceed.Invoke();
     }
 
     private Color GetCellColor(bool isContaminated)
@@ -62,7 +72,8 @@ public class CellsManager : MonoBehaviour
     {
         for (int i = 0; i < spawnCount; i++)
         {
-            Vector2 pos = (Vector2)transform.position + Random.insideUnitCircle * spawnRadius;
+            int spawnPointIndex = Random.Range(0, spawnPoints.Count);
+            Vector2 pos = (Vector2)spawnPoints[spawnPointIndex] + Random.insideUnitCircle * spawnRadius;
             BasicCell cell = Instantiate(prefab);
             
             cell.transform.position = pos;
@@ -72,8 +83,6 @@ public class CellsManager : MonoBehaviour
             
             if (isContaminated) badCells++;
             else goodCells++;
-
-            // Debug.Log(isContaminated ? "<color=#E00053>Bad Cell</color>" : "<color=#28DECA>Good Cell</color>");
 
             cell.Initialize(settings, isContaminated);
             cell.SetColour(GetCellColor(isContaminated));
@@ -92,9 +101,10 @@ public class CellsManager : MonoBehaviour
         SpawnCells();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (!finishedSpawning) return;
+        if (cells.Count < 1) return;
 
         int numCells = cells.Count;
         CellData[] cellData = new CellData[numCells];
@@ -137,8 +147,11 @@ public class CellsManager : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, spawnRadius);
+        foreach(Vector3 pos in spawnPoints)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(pos, spawnRadius);
+        }
     }
 
     public struct CellData

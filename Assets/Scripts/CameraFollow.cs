@@ -7,23 +7,18 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float moveTolerance = 1f;
     
     private Transform objectToFollow;
-    private float initialCameraDepth;
+    private Vector3 cameraOffset;
+    [BlockInInspector][SerializeField] private Vector3 velocity = Vector3.zero;
 
     private void Awake()
     {
         objectToFollow = FindFirstObjectByType<Player>().transform;
-        initialCameraDepth = transform.position.z;
+        cameraOffset = Vector3.forward * transform.position.z;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
-        float distance = Vector2.Distance(transform.position, objectToFollow.position);
-        if (distance > moveTolerance)
-        {
-            Debug.Log("Distance function: " + distance);
-
-            Vector3 targetPosition = new (objectToFollow.position.x, objectToFollow.position.y, initialCameraDepth);
-            transform.position = Vector3.Lerp(transform.position, targetPosition, moveSpeed * Time.deltaTime);
-        }
+        Vector3 targetPosition = objectToFollow.position + cameraOffset;
+        transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, moveSpeed);
     }
 }

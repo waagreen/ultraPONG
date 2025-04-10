@@ -188,6 +188,15 @@ public class Player : MonoBehaviour
 
     private void OnDestroy()
     {
+        actionMap.Player.Move.performed -= UpdateMovementInputVector;
+        actionMap.Player.Move.canceled -= UpdateMovementInputVector;
+
+        actionMap.Player.Look.performed -= UpdateAimInputVector;
+        actionMap.Player.Look.canceled -= UpdateAimInputVector;
+
+        actionMap.Player.Throw.performed -= ThrowBall;
+        actionMap.Player.Pickup.performed -= AttachBall;
+
         actionMap.Disable();
     }
 }
