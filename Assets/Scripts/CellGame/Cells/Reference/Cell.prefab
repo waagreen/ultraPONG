@@ -29,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.3, y: 1.3, z: 1.3}
+  m_LocalScale: {x: 1.4999999, y: 1.4999999, z: 1.4999999}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5298846575582930271}
@@ -49,7 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   harmLayer:
     serializedVersion: 2
-    m_Bits: 384
+    m_Bits: 128
   position: {x: 0, y: 0}
   up: {x: 0, y: 0}
   avgFlockHeading: {x: 0, y: 0}

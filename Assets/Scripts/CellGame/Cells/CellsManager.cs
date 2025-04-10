@@ -2,15 +2,24 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
+public enum GameState
+{
+    Setup = 0,
+    Running = 1,
+    Fail = 2,
+    Success = 4
+}
+
 public class CellsManager : MonoBehaviour
 {
-    [SerializeField][Range(0f, 1f)] private float integrityThreshold;
-    [SerializeField][Range(0f, 1f)] private float contaminationThreshold;
+    [SerializeField][Range(0f, 1f)] private float integrityTolerance;
+    [SerializeField][Range(0f, 1f)] private float contaminationTolerance;
 
     [Header("Spawn Settings")]
     [SerializeField] private BasicCell prefab;
     [SerializeField] private float spawnRadius = 10;
     [SerializeField] private int spawnCount = 10;
+    [SerializeField] private Transform cellsHolder;
     [SerializeField] List<Vector3> spawnPoints = new();
 
     [Header("Cell Group Behaviour")]
@@ -23,10 +32,14 @@ public class CellsManager : MonoBehaviour
 
     private const int threadGroupSize = 1024;
     private readonly List<BasicCell> cells = new();
-    private bool finishedSpawning = false;
+    private GameState currentGameState;
     private int goodCells;
     private int badCells;
+    
+    private float targetIntegrityLevel;
+    private float targetContaminationLevel;
 
+    public GameState CurrentGameState => currentGameState;
     public System.Action OnFail;
     public System.Action OnSucceed;
 
@@ -40,6 +53,27 @@ public class CellsManager : MonoBehaviour
         get => 1f - (spawnCount - goodCells) / (float)spawnCount;
     }
 
+
+    private void UpdateGameState(bool reset = false)
+    {
+        if (reset)
+        {
+            currentGameState = GameState.Setup;
+        }
+        else if (ContaminationLevel <= targetContaminationLevel)
+        {
+            currentGameState = GameState.Success;
+            OnSucceed.Invoke();
+        }
+        else if (IntegrityLevel <= targetIntegrityLevel)
+        {
+            currentGameState = GameState.Fail;
+            OnFail.Invoke();
+        }
+        else currentGameState = GameState.Running;
+        
+        Time.timeScale = currentGameState < GameState.Fail ? 1f : 0f;
+    }
 
     private void UpdateLevels()
     {
@@ -57,9 +91,7 @@ public class CellsManager : MonoBehaviour
         else goodCells--;
     
         UpdateLevels();
-        
-        if (IntegrityLevel < integrityThreshold) OnFail.Invoke();
-        if (ContaminationLevel < contaminationThreshold) OnSucceed.Invoke();
+        UpdateGameState();
     }
 
     private Color GetCellColor(bool isContaminated)
@@ -74,7 +106,7 @@ public class CellsManager : MonoBehaviour
         {
             int spawnPointIndex = Random.Range(0, spawnPoints.Count);
             Vector2 pos = (Vector2)spawnPoints[spawnPointIndex] + Random.insideUnitCircle * spawnRadius;
-            BasicCell cell = Instantiate(prefab);
+            BasicCell cell = Instantiate(prefab, cellsHolder);
             
             cell.transform.position = pos;
             cell.transform.up = Random.insideUnitCircle.normalized;
@@ -91,20 +123,24 @@ public class CellsManager : MonoBehaviour
             cell.OnDeath += EliminateCell;
         }
 
-        UpdateLevels();
+        // Target contamination level is defined by: Target = InitalLevel - InitalLevel * (1 - Tolerance)
+        // The (1 - Tolarence) is for making the input value more readable. 0 tolerance, become 1 in the equation;
+        targetContaminationLevel = ContaminationLevel - ContaminationLevel * (1f - contaminationTolerance);
+        targetIntegrityLevel = IntegrityLevel - IntegrityLevel * (1f - integrityTolerance);
 
-        finishedSpawning = true;
+        UpdateLevels();
+        UpdateGameState();
     }
 
     private void Start()
     {
+        UpdateGameState(reset: true);
         SpawnCells();
     }
 
     private void FixedUpdate()
     {
-        if (!finishedSpawning) return;
-        if (cells.Count < 1) return;
+        if (currentGameState != GameState.Running) return;
 
         int numCells = cells.Count;
         CellData[] cellData = new CellData[numCells];

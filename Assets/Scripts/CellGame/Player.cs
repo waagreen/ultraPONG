@@ -18,12 +18,13 @@ public class Player : MonoBehaviour
     private Camera mainCamera;
     private bool isUsingController;
 
-    // essential components - (do not change)
+    // Essential components - (do not change)
     private Rigidbody2D rb;
     private CircleCollider2D col;
     private SpriteRenderer sRenderer;
+    private CellsManager cellsManager;
     
-    // dynamic variables
+    // Dynamic variables
     private Vector2 aimInput = Vector2.zero;
     private Vector2 movementInput = Vector2.zero;
     private Vector2 lerpedInput = Vector2.zero;
@@ -36,6 +37,7 @@ public class Player : MonoBehaviour
     private void Start()
     {
         mainCamera = Camera.main;
+        cellsManager = FindFirstObjectByType<CellsManager>();
 
         CreateActionMap();
         GetRequiredComponents();
@@ -158,6 +160,8 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (cellsManager.CurrentGameState != GameState.Running) return;;
+
         HandleMovement();
         HandleAimRotation();
     }

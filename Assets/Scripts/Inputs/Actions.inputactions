@@ -504,6 +504,28 @@
                 },
                 {
                     "name": "",
+                    "id": "a72b2722-c17b-44ad-8150-6cb3141381c4",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Throw",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e1cab584-dd49-4b43-810c-729b74df98ad",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pickup",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "fe74fdef-f8f9-4cfc-8318-76d467e22d09",
                     "path": "<Gamepad>/leftTrigger",
                     "interactions": "",
