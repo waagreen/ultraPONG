@@ -21,8 +21,8 @@ public class CameraFollow : MonoBehaviour
         cameraOffset = Vector3.forward * transform.position.z;
 
         zoomInSequence = DOTween.Sequence();
-        zoomInSequence.Append(Camera.main.DOOrthoSize(targetOrthoSize, 5f));
-        zoomInSequence.Join(transform.DOMove(objectToFollow.position + cameraOffset, 5f));
+        zoomInSequence.Append(Camera.main.DOOrthoSize(targetOrthoSize, CellsManager.kLevelIntroductionDuration));
+        zoomInSequence.Join(transform.DOMove(objectToFollow.position + cameraOffset, CellsManager.kLevelIntroductionDuration));
         zoomInSequence.SetEase(Ease.InOutCubic);
     }
 

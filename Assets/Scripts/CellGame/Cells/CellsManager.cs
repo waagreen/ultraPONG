@@ -30,6 +30,7 @@ public class CellsManager : MonoBehaviour
     [SerializeField] private TMP_Text integrityDisplay;
     [SerializeField] private TMP_Text contaminationDisplay;
 
+    public const float kLevelIntroductionDuration = 5f;
     private const int threadGroupSize = 1024;
     private readonly List<BasicCell> cells = new();
     private GameState currentGameState;

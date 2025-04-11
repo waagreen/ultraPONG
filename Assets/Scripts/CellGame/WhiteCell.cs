@@ -18,7 +18,6 @@ public class WhiteCell : MonoBehaviour
     private Vector2 initalScale;
     private Rigidbody2D rb;
     private Transform connectionPoint;
-    private TrailRenderer lineRenderer;
 
     public bool JointConnection
     {
@@ -33,7 +32,6 @@ public class WhiteCell : MonoBehaviour
         col = GetComponent<CircleCollider2D>();
         joint = GetComponent<RelativeJoint2D>();
         rb = GetComponent<Rigidbody2D>();
-        lineRenderer = GetComponentInChildren<TrailRenderer>();
 
         JointConnection = false;
         returnSequence = DOTween.Sequence();
@@ -43,7 +41,6 @@ public class WhiteCell : MonoBehaviour
     {
         returnSequence?.Kill();
         returnSequence = DOTween.Sequence();
-        lineRenderer.enabled = false;
         rb.linearVelocity = Vector3.zero;
 
         returnSequence.Append(transform.DOScale(0f, 0.1f).SetEase(Ease.InBack));
@@ -53,7 +50,6 @@ public class WhiteCell : MonoBehaviour
             JointConnection = true;
             transform.SetParent(connectionPoint);
             transform.position = connectionPoint.position;
-            lineRenderer.enabled = true;
         });
         returnSequence.AppendInterval(0.2f);
         returnSequence.Append(transform.DOScale(initalScale, 0.1f).SetEase(Ease.OutBack));

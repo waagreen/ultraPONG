@@ -66,7 +66,7 @@ public class Player : MonoBehaviour
         else
         {
             Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
+            Cursor.lockState = CursorLockMode.Confined;
         }
     }
 
@@ -101,8 +101,7 @@ public class Player : MonoBehaviour
         if (aimInput.magnitude < 0.1f) return movementInput.normalized;
         if (isUsingController) return aimInput.normalized;
 
-        Vector2 mouseScreenPosition = aimInput;
-        Vector2 mouseWorldPosition = mainCamera.ScreenToWorldPoint(mouseScreenPosition);
+        Vector2 mouseWorldPosition = mainCamera.ScreenToWorldPoint(aimInput);
         return (mouseWorldPosition - (Vector2)transform.position).normalized;
     }
 
