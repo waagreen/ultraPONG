@@ -28,7 +28,7 @@ public class CameraFollow : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (zoomInSequence.IsPlaying()) return;
+        if (zoomInSequence == null || zoomInSequence.IsPlaying()) return;
         
         Vector3 targetPosition = objectToFollow.position + cameraOffset;
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, moveSpeed);

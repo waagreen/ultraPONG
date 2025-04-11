@@ -48,11 +48,7 @@ public class Player : MonoBehaviour
         actionMap.Enable();    
 
         actionMap.Player.Move.performed += UpdateMovementInputVector;
-        actionMap.Player.Move.canceled += UpdateMovementInputVector;
-
         actionMap.Player.Look.performed += UpdateAimInputVector;
-        actionMap.Player.Look.canceled += UpdateAimInputVector;
-
         actionMap.Player.Throw.performed += ThrowCell;
 
         gamepad = Gamepad.current;
@@ -81,12 +77,12 @@ public class Player : MonoBehaviour
 
     private void UpdateMovementInputVector(InputAction.CallbackContext ctx)
     {
-        movementInput = ctx.ReadValue<Vector2>(); 
+        movementInput = ctx.canceled ? Vector2.zero : ctx.ReadValue<Vector2>(); 
     }
     
     private void UpdateAimInputVector(InputAction.CallbackContext ctx)
     {
-        aimInput = ctx.ReadValue<Vector2>(); 
+        aimInput = ctx.canceled ? Vector2.zero :ctx.ReadValue<Vector2>(); 
     }
 
     private void HandleMovement()
@@ -156,11 +152,7 @@ public class Player : MonoBehaviour
     private void OnDestroy()
     {
         actionMap.Player.Move.performed -= UpdateMovementInputVector;
-        actionMap.Player.Move.canceled -= UpdateMovementInputVector;
-
         actionMap.Player.Look.performed -= UpdateAimInputVector;
-        actionMap.Player.Look.canceled -= UpdateAimInputVector;
-
         actionMap.Player.Throw.performed -= ThrowCell;
 
         actionMap.Disable();
