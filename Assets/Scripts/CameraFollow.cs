@@ -5,7 +5,6 @@ using DG.Tweening;
 public class CameraFollow : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float moveTolerance = 1f;
     [SerializeField] private float targetOrthoSize = 8;
     [SerializeField] private Vector3 velocity = Vector3.zero;
     
@@ -13,6 +12,7 @@ public class CameraFollow : MonoBehaviour
     private Vector3 cameraOffset;
     private Sequence zoomInSequence;
     private Camera attachedCamera;
+    private bool finishedSetup = false;
 
     private void Awake()
     {
@@ -24,11 +24,12 @@ public class CameraFollow : MonoBehaviour
         zoomInSequence.Append(Camera.main.DOOrthoSize(targetOrthoSize, CellsManager.kLevelIntroductionDuration));
         zoomInSequence.Join(transform.DOMove(objectToFollow.position + cameraOffset, CellsManager.kLevelIntroductionDuration));
         zoomInSequence.SetEase(Ease.InOutCubic);
+        zoomInSequence.OnComplete(() => finishedSetup = true);
     }
 
     private void FixedUpdate()
     {
-        if (zoomInSequence == null || zoomInSequence.IsPlaying()) return;
+        if (!finishedSetup) return;
         
         Vector3 targetPosition = objectToFollow.position + cameraOffset;
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, moveSpeed);

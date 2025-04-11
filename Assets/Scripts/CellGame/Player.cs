@@ -9,7 +9,6 @@ public class Player : MonoBehaviour
     [Range(1f, 25f)][SerializeField] private float Acceleration;
     [Range(1f, 25f)][SerializeField] private float Deceleration;
     [Range(1f, 50f)][SerializeField] private float RotationSpeed;
-    [Range(0f, 0.5f)][SerializeField] private float IdleThreshold = 0.03f;
     [SerializeField] private Transform holdSlot;
     [SerializeField] private WhiteCell cellPrefab;
 
@@ -49,6 +48,10 @@ public class Player : MonoBehaviour
 
         actionMap.Player.Move.performed += UpdateMovementInputVector;
         actionMap.Player.Look.performed += UpdateAimInputVector;
+        
+        actionMap.Player.Move.canceled += UpdateMovementInputVector;
+        actionMap.Player.Look.canceled += UpdateAimInputVector;
+        
         actionMap.Player.Throw.performed += ThrowCell;
 
         gamepad = Gamepad.current;
@@ -77,12 +80,14 @@ public class Player : MonoBehaviour
 
     private void UpdateMovementInputVector(InputAction.CallbackContext ctx)
     {
-        movementInput = ctx.canceled ? Vector2.zero : ctx.ReadValue<Vector2>(); 
+        movementInput = ctx.ReadValue<Vector2>(); 
+        Vector2.ClampMagnitude(movementInput, 1f);
     }
     
     private void UpdateAimInputVector(InputAction.CallbackContext ctx)
     {
-        aimInput = ctx.canceled ? Vector2.zero :ctx.ReadValue<Vector2>(); 
+        aimInput = ctx.ReadValue<Vector2>(); 
+        Debug.Log("aim: " + aimInput);
     }
 
     private void HandleMovement()
@@ -154,6 +159,9 @@ public class Player : MonoBehaviour
         actionMap.Player.Move.performed -= UpdateMovementInputVector;
         actionMap.Player.Look.performed -= UpdateAimInputVector;
         actionMap.Player.Throw.performed -= ThrowCell;
+
+        actionMap.Player.Move.canceled -= UpdateMovementInputVector;
+        actionMap.Player.Look.canceled -= UpdateAimInputVector;
 
         actionMap.Disable();
     }

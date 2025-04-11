@@ -18,6 +18,7 @@ public class WhiteCell : MonoBehaviour
     private Vector2 initalScale;
     private Rigidbody2D rb;
     private Transform connectionPoint;
+    private bool isTraveling = false;
 
     public bool JointConnection
     {
@@ -25,7 +26,7 @@ public class WhiteCell : MonoBehaviour
         get => joint.enabled;
     }
 
-    public bool CanBeThrowed() => JointConnection && !returnSequence.IsPlaying();
+    public bool CanBeThrowed() => JointConnection && !isTraveling;
     
     private void GetRequiredComponents()
     {
@@ -42,6 +43,7 @@ public class WhiteCell : MonoBehaviour
         returnSequence?.Kill();
         returnSequence = DOTween.Sequence();
         rb.linearVelocity = Vector3.zero;
+        isTraveling = true;
 
         returnSequence.Append(transform.DOScale(0f, 0.1f).SetEase(Ease.InBack));
         returnSequence.AppendCallback
@@ -53,6 +55,7 @@ public class WhiteCell : MonoBehaviour
         });
         returnSequence.AppendInterval(0.2f);
         returnSequence.Append(transform.DOScale(initalScale, 0.1f).SetEase(Ease.OutBack));
+        returnSequence.OnComplete(() => isTraveling = false);
     }
 
     public void SetHolderRigidBody(Rigidbody2D rb, Transform connectionPoint)
