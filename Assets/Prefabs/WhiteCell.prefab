@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 212409048520353111}
   - component: {fileID: 7488482463285122654}
   - component: {fileID: 6548708243719922186}
-  - component: {fileID: 8029803452736096731}
+  - component: {fileID: 4185351564750304763}
   m_Layer: 7
   m_Name: WhiteCell
   m_TagString: Untagged
@@ -173,8 +173,8 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!254 &8029803452736096731
-RelativeJoint2D:
+--- !u!255 &4185351564750304763
+FixedJoint2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -182,17 +182,16 @@ RelativeJoint2D:
   m_GameObject: {fileID: 708815474323297897}
   m_Enabled: 1
   serializedVersion: 4
-  m_EnableCollision: 1
+  m_EnableCollision: 0
   m_ConnectedRigidBody: {fileID: 0}
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_BreakAction: 3
-  m_MaxForce: 10000
-  m_MaxTorque: 0
-  m_CorrectionScale: 0.3
-  m_AutoConfigureOffset: 1
-  m_LinearOffset: {x: 0, y: 0}
-  m_AngularOffset: 0
+  m_AutoConfigureConnectedAnchor: 1
+  m_Anchor: {x: 0, y: 0}
+  m_ConnectedAnchor: {x: 0, y: 0}
+  m_DampingRatio: 0
+  m_Frequency: 0
 --- !u!1 &5649367891202128318
 GameObject:
   m_ObjectHideFlags: 0

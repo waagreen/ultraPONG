@@ -13,7 +13,7 @@ public class WhiteCell : MonoBehaviour
 
     private CircleCollider2D col;
     private Sequence returnSequence;
-    private RelativeJoint2D joint;
+    private FixedJoint2D joint;
     
     private Vector2 initalScale;
     private Rigidbody2D rb;
@@ -30,7 +30,7 @@ public class WhiteCell : MonoBehaviour
     private void GetRequiredComponents()
     {
         col = GetComponent<CircleCollider2D>();
-        joint = GetComponent<RelativeJoint2D>();
+        joint = GetComponent<FixedJoint2D>();
         rb = GetComponent<Rigidbody2D>();
 
         JointConnection = false;
