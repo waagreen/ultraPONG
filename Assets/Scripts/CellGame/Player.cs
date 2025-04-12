@@ -87,7 +87,6 @@ public class Player : MonoBehaviour
     private void UpdateAimInputVector(InputAction.CallbackContext ctx)
     {
         aimInput = ctx.ReadValue<Vector2>(); 
-        Debug.Log("aim: " + aimInput);
     }
 
     private void HandleMovement()
