@@ -31,6 +31,7 @@ public class CellsManager : MonoBehaviour
     [SerializeField] private TMP_Text contaminationDisplay;
 
     public const float kLevelIntroductionDuration = 5f;
+    private const int kCheckDirectionAmount = 64;
     private const int threadGroupSize = 1024;
     private readonly List<BasicCell> cells = new();
     private GameState currentGameState;
@@ -43,6 +44,7 @@ public class CellsManager : MonoBehaviour
     public GameState CurrentGameState => currentGameState;
     public System.Action OnFail;
     public System.Action OnSucceed;
+    public static Vector2[] rayDirections;
 
     public float ContaminationLevel
     {
@@ -112,7 +114,8 @@ public class CellsManager : MonoBehaviour
             cell.transform.position = pos;
             cell.transform.up = Random.insideUnitCircle.normalized;
 
-            bool isContaminated = Random.Range(1, 7) == 6;
+            int d6 = Random.Range(1, 7);
+            bool isContaminated = (d6 == 6) || (d6 == 1);
             
             if (isContaminated) badCells++;
             else goodCells++;
@@ -133,8 +136,19 @@ public class CellsManager : MonoBehaviour
         UpdateGameState();
     }
 
-    private void Start()
+    private void Awake()
     {
+        if (rayDirections == null)
+        {        
+            rayDirections = new Vector2[kCheckDirectionAmount];
+            // Pre calculate 64 different directions around a circle
+            for (int i = 0; i < kCheckDirectionAmount; i++)
+            {
+                float angle = i * Mathf.PI * 2 / kCheckDirectionAmount;
+                rayDirections[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            }
+        }
+
         UpdateGameState(reset: true);
         SpawnCells();
     }
@@ -149,8 +163,8 @@ public class CellsManager : MonoBehaviour
         // Inject cell instances position and direction into the data array
         for (int i = 0; i < cells.Count; i++)
         {
-            cellData[i].position = cells[i].position;
-            cellData[i].direction = cells[i].up;
+            cellData[i].position = cells[i].transform.position;
+            cellData[i].direction = cells[i].transform.up;
         }
 
         // Initialized buffer and set the data array
@@ -161,7 +175,7 @@ public class CellsManager : MonoBehaviour
         compute.SetBuffer(0, "cells", cellBuffer);
         compute.SetInt("numCells", cells.Count);
         compute.SetFloat("viewRadius", settings.perceptionRadius);
-        compute.SetFloat("avoidRadius", settings.avoidanceRadius);
+        compute.SetFloat("avoidRadius", settings.protectedRadius);
 
         // Dispatch compute shader to GPU
         int threadGroups = Mathf.CeilToInt(numCells / (float)threadGroupSize);

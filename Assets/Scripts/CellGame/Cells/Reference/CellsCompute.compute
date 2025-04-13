@@ -13,32 +13,36 @@ struct Cell
 };
 
 RWStructuredBuffer<Cell> cells;
-int numCells;
+uint numCells;
 float viewRadius;
 float avoidRadius;
 
 [numthreads(threadGroupSize,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    for (int indexB = 0; indexB < numCells; indexB ++)
+    if (id.x >= numCells) return;  // Safety check
+
+    for (uint indexB = 0; indexB < numCells; indexB ++)
     {
-        if (id.x != indexB)
+        if (id.x == indexB) continue;
+
+        Cell cellA = cells[id.x];
+        Cell cellB = cells[indexB];
+    
+        float2 offset = cellB.position - cellA.position;
+        float sqrDst = dot(offset, offset);
+        
+        if (sqrDst < avoidRadius * avoidRadius)
         {
-            Cell cellB = cells[indexB];
-            float2 offset = cellB.position - cells[id.x].position;
-            float sqrDst = offset.x * offset.x + offset.y * offset.y;
-
-            if (sqrDst < viewRadius * viewRadius)
-            {
-                cells[id.x].numFlockmates += 1;
-                cells[id.x].flockHeading += cellB.direction;
-                cells[id.x].flockCentre += cellB.position;
-
-                if (sqrDst < avoidRadius * avoidRadius)
-                {
-                    cells[id.x].separationHeading -= offset / sqrDst;
-                }
-            }
+            cellA.separationHeading -= offset / sqrDst;
         }
+        else if (sqrDst < viewRadius * viewRadius)
+        {
+            cellA.numFlockmates += 1;
+            cellA.flockHeading += cellB.direction;
+            cellA.flockCentre += cellB.position;
+        }
+
+        cells[id.x] = cellA;
     }
 }
