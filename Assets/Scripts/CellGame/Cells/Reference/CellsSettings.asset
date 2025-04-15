@@ -14,15 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   perceptionRadius: 7
   protectedRadius: 3.25
-  minSpeed: 1.5
-  maxSpeed: 3.5
-  maxSteerForce: 4
+  minSpeed: 2
+  maxSpeed: 5
+  maxSteerForce: 5
   alignFactor: 1.3
   cohesionFactor: 2.2
   avoidFactor: 3.5
-  spawnAttractionBias: 0
+  spawnAttractionBias: 0.4
   obstacleMask:
     serializedVersion: 2
     m_Bits: 1408
-  avoidCollisionFactor: 3
+  avoidCollisionFactor: 12
   collisionAvoidDst: 7

@@ -12,102 +12,59 @@ public class Player : MonoBehaviour
     [SerializeField] private Transform holdSlot;
     [SerializeField] private WhiteCell cellPrefab;
 
-    private Actions actionMap;
-    private Gamepad gamepad;
-    private Camera mainCamera;
-    private bool isUsingController;
 
     // Essential components - (do not change)
     private Rigidbody2D rb;
     private CircleCollider2D col;
     private SpriteRenderer sRenderer;
     private CellsManager cellsManager;
+    private Camera mainCamera;
+    private InputManager inputManager;
     
     // Dynamic variables
-    private Vector2 aimInput = Vector2.zero;
-    private Vector2 movementInput = Vector2.zero;
     private Vector2 lerpedInput = Vector2.zero;
-
     private WhiteCell attachedCell;
-
     private float rateOfChange;
 
     private void Start()
     {
-        mainCamera = Camera.main;
-        cellsManager = FindFirstObjectByType<CellsManager>();
-
-        CreateActionMap();
         GetRequiredComponents();
-    }
+        AttachCell();
 
-    private void CreateActionMap()
-    {
-        actionMap = new();
-        actionMap.Enable();    
-
-        actionMap.Player.Move.performed += UpdateMovementInputVector;
-        actionMap.Player.Look.performed += UpdateAimInputVector;
-        
-        actionMap.Player.Move.canceled += UpdateMovementInputVector;
-        actionMap.Player.Look.canceled += UpdateAimInputVector;
-        
-        actionMap.Player.Throw.performed += ThrowCell;
-
-        gamepad = Gamepad.current;
-        isUsingController = gamepad != null;
-
-        if(isUsingController)
-        {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-        else
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.Confined;
-        }
+        inputManager.ThrowAction.performed += ThrowCell;
     }
 
     private void GetRequiredComponents()
     {
+        mainCamera = Camera.main;
+        
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<CircleCollider2D>();
         sRenderer = GetComponent<SpriteRenderer>();
         
-        AttachCell();
+        cellsManager = FindFirstObjectByType<CellsManager>();   
+        inputManager = FindFirstObjectByType<InputManager>();
     }
 
-    private void UpdateMovementInputVector(InputAction.CallbackContext ctx)
-    {
-        movementInput = ctx.ReadValue<Vector2>(); 
-        Vector2.ClampMagnitude(movementInput, 1f);
-    }
-    
-    private void UpdateAimInputVector(InputAction.CallbackContext ctx)
-    {
-        aimInput = ctx.ReadValue<Vector2>(); 
-    }
-
-    private void HandleMovement()
+    private void HandleMovement(Vector2 movementInput)
     {
         lerpedInput = Vector2.Lerp(Vector2.zero, movementInput.normalized * MovementSpeed, movementInput.magnitude);
         rateOfChange = Mathf.Lerp(Deceleration, Acceleration, lerpedInput.magnitude);
         rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, lerpedInput, rateOfChange * Time.deltaTime);
     }
     
-    private Vector2 GetRealInputVector()
+    private Vector2 GetRealInputVector(Vector2 movementInput, Vector2 aimInput)
     {
         if (aimInput.magnitude < 0.1f) return movementInput.normalized;
-        if (isUsingController) return aimInput.normalized;
+        if (inputManager.IsUsingController) return aimInput.normalized;
 
         Vector2 mouseWorldPosition = mainCamera.ScreenToWorldPoint(aimInput);
         return (mouseWorldPosition - (Vector2)transform.position).normalized;
     }
 
-    private void HandleAimRotation()
+    private void HandleAimRotation(Vector2 movementInput, Vector2 aimInput)
     {
-        Vector2 realInput = GetRealInputVector();
+        Vector2 realInput = GetRealInputVector(movementInput, aimInput);
         if (realInput.magnitude < 0.1f) return;
 
         float targetAngle = Mathf.Atan2(realInput.y, realInput.x) * Mathf.Rad2Deg;
@@ -149,19 +106,15 @@ public class Player : MonoBehaviour
     {
         if (cellsManager.CurrentGameState != GameState.Running) return;;
 
-        HandleMovement();
-        HandleAimRotation();
+        Vector2 aimInput = inputManager.AimInput;
+        Vector2 movementInput = inputManager.MovementInput;
+
+        HandleMovement(movementInput);
+        HandleAimRotation(movementInput, aimInput);
     }
 
     private void OnDestroy()
     {
-        actionMap.Player.Move.performed -= UpdateMovementInputVector;
-        actionMap.Player.Look.performed -= UpdateAimInputVector;
-        actionMap.Player.Throw.performed -= ThrowCell;
-
-        actionMap.Player.Move.canceled -= UpdateMovementInputVector;
-        actionMap.Player.Look.canceled -= UpdateAimInputVector;
-
-        actionMap.Disable();
+        inputManager.ThrowAction.performed -= ThrowCell;
     }
 }

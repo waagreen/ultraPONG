@@ -64,6 +64,8 @@ public class BasicCell : MonoBehaviour
             acceleration += collisionAvoidForce;
         }
 
+        acceleration += SteerTowards(spawnPosition - (Vector2)transform.position) * settings.spawnAttractionBias;
+
         // Update velocity based on all external influences
         velocity += acceleration * Time.deltaTime;
         
