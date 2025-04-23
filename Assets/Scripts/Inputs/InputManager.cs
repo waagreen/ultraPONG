@@ -82,7 +82,7 @@ public class InputManager : MonoBehaviour
         Vector2.ClampMagnitude(aimInput, 1f);
     }
 
-    void Start()
+    private void Awake()
     {
         InputSystem.onDeviceChange += UpdateGameControlScheme;
         CreateActionMap();   
